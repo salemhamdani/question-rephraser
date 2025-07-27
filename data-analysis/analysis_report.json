@@ -1,0 +1,105 @@
+{
+  "dataset_overview": {
+    "train_size": 7182,
+    "test_size": 3643,
+    "total_size": 10825
+  },
+  "length_statistics": {
+    "train": {
+      "original_chars": {
+        "mean": 58.51629072681704,
+        "std": 19.818236837501466,
+        "min": 12,
+        "max": 189
+      },
+      "disfluent_chars": {
+        "mean": 82.7989417989418,
+        "std": 26.79130086374206,
+        "min": 1,
+        "max": 655
+      }
+    }
+  },
+  "disfluency_patterns": {
+    "_comment": "Disfluency pattern analysis from the dataset",
+    "dynamic_markers": {
+      "_comment": "Words that appear ONLY in disfluent text but NOT in original text (automatically discovered)",
+      "data": {
+        "no": 3714,
+        "sorry": 812,
+        "rather": 756,
+        "mean": 682,
+        "make": 630,
+        "uh": 600,
+        "what": 497,
+        "how": 433,
+        "er": 433,
+        "um": 377,
+        "which": 359,
+        "wait": 356,
+        "when": 327,
+        "actually": 316,
+        "who": 264
+      }
+    },
+    "common_patterns": {
+      "_comment": "All occurrences of known disfluency patterns found in disfluent text (predefined patterns)",
+      "data": {
+        "er": 4732,
+        "so": 1641,
+        "um": 914,
+        "i mean": 825,
+        "sorry": 812,
+        "rather": 768,
+        "uh": 626,
+        "make that": 616,
+        "wait": 358,
+        "oh": 344
+      }
+    },
+    "question_patterns": {
+      "what": {
+        "count": 3343,
+        "percentage": 46.5
+      },
+      "when": {
+        "count": 438,
+        "percentage": 6.1
+      },
+      "where": {
+        "count": 271,
+        "percentage": 3.8
+      },
+      "who": {
+        "count": 595,
+        "percentage": 8.3
+      },
+      "why": {
+        "count": 128,
+        "percentage": 1.8
+      },
+      "how": {
+        "count": 662,
+        "percentage": 9.2
+      },
+      "which": {
+        "count": 166,
+        "percentage": 2.3
+      }
+    }
+  },
+  "edit_operations": {
+    "deletions": {
+      "count": 7155
+    },
+    "insertions": {
+      "count": 828
+    },
+    "substitutions": {
+      "count": 7180
+    },
+    "reorderings": {
+      "count": 16
+    }
+  }
+}
