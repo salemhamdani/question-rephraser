@@ -14,7 +14,7 @@ from transformers import PreTrainedTokenizer
 
 
 class DisflQADataset(Dataset):
-    """Dataset class for question rephrasing tasks (supports Disfl-QA and other formats)"""
+    """Dataset class for question rephrasing tasks (supports Disfl-QA)"""
     
     def __init__(self, data_path: str, tokenizer: PreTrainedTokenizer, config, 
                  input_prefix: str = "rephrase: ", is_train: bool = True):
