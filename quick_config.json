@@ -1,0 +1,17 @@
+{
+  "models_to_test": [
+    "bert-base-uncased"
+  ],
+  "batch_sizes": [
+    32
+  ],
+  "learning_rates": [
+    5e-05
+  ],
+  "epochs": [
+    50
+  ],
+  "run_test_evaluation": true,
+  "use_early_stopping": true,
+  "early_stopping_patience": 10
+}

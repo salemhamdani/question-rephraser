@@ -1,0 +1,14 @@
+{
+  "models_to_test": [
+    "t5-small",
+    "facebook/bart-base", 
+    "bert-base-uncased", 
+    "bert-base-cased"
+  ],
+  "batch_sizes": [32],
+  "learning_rates": [5e-5],
+  "epochs": [50],
+  "run_test_evaluation": true,
+  "use_early_stopping": true,
+  "early_stopping_patience": 10
+}
