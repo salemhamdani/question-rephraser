@@ -3,12 +3,7 @@
 Data Analysis for Question Rephrasing Project
 ============================================
 
-This script analyzes the Disfl-QA dataset to understand:
-- Data distribution and statistics
-- Question types and patterns
-- Disfluency patterns and characteristics
-- Text length distributions
-- Data quality and preprocessing needs
+This script analyzes the Disfl-QA dataset.
 """
 
 import json
