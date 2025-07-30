@@ -90,12 +90,6 @@ This project develops a question rephrasing framework to fine-tune and test stat
 - **Accuracy**: Token-level and sequence-level accuracy
 - **Perplexity**: Model confidence measurement
 
-#### Human-Interpretable Analysis
-- Perplexity comparison (train vs. test)
-- Confidence calibration analysis
-- Uncertainty quantification via Monte Carlo Dropout
-
-
 ### Overfitting Detection Methods
 
 #### 1. Early Stopping
@@ -241,12 +235,13 @@ The Streamlit app provides a user-friendly chat interface where you can:
 ```json
 {
     "models_to_test": [
+        "t5-small",
         "facebook/bart-base", 
         "bert-base-uncased", 
         "bert-base-cased"
     ],
-    "batch_sizes": [32, 64],
-    "learning_rates": [5e-5, 1e-5],
+    "batch_sizes": [32],
+    "learning_rates": [5e-5],
     "epochs": [50],
     "run_test_evaluation": true,
     "use_early_stopping": true,
