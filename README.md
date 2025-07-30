@@ -4,6 +4,8 @@
 
 This project develops a question rephrasing framework to fine-tune and test state of art models to convert noisy, disfluent questions into clean, well-formed questions using the Disfl-QA dataset. The system addresses the challenge of understanding user intent despite typing errors, hesitations, and discontinuous thinking patterns in conversational AI.
 
+![Chat Interface Demo](images/chat_demo.png)
+
 ## 📊 Dataset Analysis
 
 ### Disfl-QA Dataset Statistics
@@ -127,11 +129,32 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-2. **Interactive Testing (Recommended)**
+2. **Fine-tune Models (Required for Chat Interface)**
+```bash
+# Train models and save them in the experiments/ folder
+# The Streamlit app will automatically detect models from this directory
+
+# Quick single model training:
+python run_experiment.py --config quick_config.json
+
+# Full experiment with multiple models:
+python run_experiment.py --config config/experiment_config.json
+
+# Individual model training:
+python model_trainer.py \
+    --model bert-base-cased \
+    --batch_size 32 \
+    --epochs 50 \
+    --output_dir experiments/my_model
+```
+
+3. **Interactive Testing (Recommended)**
 ```bash
 # Launch the Streamlit chat interface to test your trained models
 streamlit run streamlit_app.py
 ```
+
+**Important**: The Streamlit chat interface automatically detects trained models from the `experiments/` folder. Make sure to fine-tune your models first and save them in this directory for the app to find them.
 
 3. **Run Data Analysis**
 ```bash
@@ -267,6 +290,8 @@ question-rephraser/
 │   └── dataset_analysis.png # Visualization plots
 ├── config/
 │   └── experiment_config.json # Full experiment configuration
+├── images/                  # Documentation images
+│   └── chat_demo.png       # Chat interface screenshot (upload here)
 ├── quick_config.json        # Quick single-model configuration
 ├── dataset.py              # Dataset classes and data augmentation
 ├── data_analysis.py        # Comprehensive dataset analysis
