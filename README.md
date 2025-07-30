@@ -4,6 +4,8 @@
 
 This project develops a question rephrasing framework to fine-tune and test state of art models to convert noisy, disfluent questions into clean, well-formed questions using the Disfl-QA dataset. The system addresses the challenge of understanding user intent despite typing errors, hesitations, and discontinuous thinking patterns in conversational AI.
 
+**🚀 Live Demo Available**: The best performing fine-tuned models (BART and T5-small) are now hosted on Hugging Face, enabling instant live testing through the Streamlit chat interface without any training required.
+
 ![Chat Interface Demo](images/chat_demo.png)
 
 ## 📊 Dataset Analysis
@@ -123,7 +125,26 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-2. **Fine-tune Models (Required for Chat Interface)**
+2. **Pre-trained Models Available (Recommended)**
+The best performing fine-tuned models (BART and T5-small) are now hosted on Hugging Face for immediate use:
+
+- **BART Model**: [Your Hugging Face Repo]/bart-disfl-qa
+- **T5-Small Model**: [Your Hugging Face Repo]/t5-small-disfl-qa
+
+These models are ready to use and will be automatically loaded by the Streamlit chat interface.
+
+3. **Interactive Testing (Live Demo)**
+```bash
+# Launch the Streamlit chat interface with pre-trained models
+streamlit run streamlit_app.py
+```
+
+The chat interface will automatically load the best performing models from Hugging Face, making it ready for live testing without any additional training required.
+
+### Alternative: Fine-tune Your Own Models
+
+If you want to train your own models:
+
 ```bash
 # Train models and save them in the experiments/ folder
 # The Streamlit app will automatically detect models from this directory
@@ -142,13 +163,7 @@ python model_trainer.py \
     --output_dir experiments/my_model
 ```
 
-3. **Interactive Testing (Recommended)**
-```bash
-# Launch the Streamlit chat interface to test your trained models
-streamlit run streamlit_app.py
-```
-
-**Important**: The Streamlit chat interface automatically detects trained models from the `experiments/` folder. Make sure to fine-tune your models first and save them in this directory for the app to find them.
+**Note**: The Streamlit chat interface prioritizes pre-trained models from Hugging Face, but will also detect locally trained models from the `experiments/` folder if available.
 
 3. **Run Data Analysis**
 ```bash
@@ -191,19 +206,20 @@ python evaluate_model.py experiments/trained_model
 # Generates: comprehensive evaluation metrics on test data
 ```
 
-#### Interactive Chat Interface (Streamlit)
+#### Interactive Chat Interface (Streamlit) - Live Demo
 ```bash
-# Run the Streamlit chat interface to test your trained models
+# Run the Streamlit chat interface with pre-trained models
 streamlit run streamlit_app.py
 ```
 
 The Streamlit app provides a user-friendly chat interface where you can:
 
-- **Select Models**: Choose from your trained models (BERT, T5, BART)
-- **Real-time Testing**: Input disfluent questions and get clean rephrased versions
+- **Select Models**: Choose from pre-trained models (BART, T5-small) hosted on Hugging Face
+- **Real-time Testing**: Input disfluent questions and get clean rephrased versions instantly
 - **Chat History**: Keep track of conversation with timestamps
 - **Example Questions**: Built-in examples to get started
 - **Adjustable Settings**: Configure max output length and generation parameters
+- **Live Demo**: Ready to use immediately without any training required
 
 **Example disfluent questions to try:**
 - "What do petrologists no what do unstable isotope studies indicate?"
@@ -211,10 +227,11 @@ The Streamlit app provides a user-friendly chat interface where you can:
 - "How do plants um actually no wait how do plants make their own food?"
 
 **Features:**
-- Automatic model detection from `experiments/` directory
+- Automatic loading of best performing models from Hugging Face
 - GPU acceleration when available
 - Model loading caching for better performance
 - Responsive design for desktop and mobile
+- Live demo capability - no training required
 
 ### Configuration
 

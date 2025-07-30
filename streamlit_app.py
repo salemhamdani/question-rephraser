@@ -10,12 +10,14 @@ Users can select different models and input disfluent questions to get clean, fl
 import streamlit as st
 import torch
 import time
+import os
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 from transformers import (
     T5ForConditionalGeneration, T5Tokenizer,
     BartForConditionalGeneration, BartTokenizer,
-    EncoderDecoderModel, BertTokenizer
+    AutoModel, AutoTokenizer
+    # EncoderDecoderModel, BertTokenizer  # Commented out BERT models
 )
 import logging
 
@@ -24,90 +26,156 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class ModelLoader:
-    """Utility class for loading trained models"""
+    """Utility class for loading trained models from Hugging Face Hub and local experiments folder"""
     
-    def __init__(self, experiments_dir: str = "experiments"):
-        self.experiments_dir = Path(experiments_dir)
+    def __init__(self):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self._available_models = None
+        self._local_models = None
         
+    def _discover_local_models(self) -> Dict[str, str]:
+        """Discover locally trained models from experiments folder"""
+        local_models = {}
+        experiments_dir = Path("experiments")
+        
+        if not experiments_dir.exists():
+            return local_models
+            
+        for model_dir in experiments_dir.iterdir():
+            if model_dir.is_dir():
+                if "facebook" in model_dir.name.lower():
+                    # Check for BART models in facebook subdirectory
+                    for bart_dir in model_dir.iterdir():
+                        if bart_dir.is_dir() and "bart" in bart_dir.name.lower():
+                            model_files = list(bart_dir.glob("*.safetensors")) + list(bart_dir.glob("*.bin"))
+                            config_file = bart_dir / "config.json"
+                            tokenizer_files = list(bart_dir.glob("tokenizer*")) + list(bart_dir.glob("*.json"))
+                            
+                            if model_files and config_file.exists() and tokenizer_files:
+                                local_models["BART Base (Local)"] = str(bart_dir)
+                                logger.info(f"Found local BART model at {bart_dir}")
+                                
+                else:
+                    # Check if this directory contains a trained model
+                    model_files = list(model_dir.glob("*.safetensors")) + list(model_dir.glob("*.bin"))
+                    config_file = model_dir / "config.json"
+                    tokenizer_files = list(model_dir.glob("tokenizer*")) + list(model_dir.glob("*.json"))
+                
+                    if model_files and config_file.exists() and tokenizer_files:
+                    # Extract model name from directory name
+                        model_name = model_dir.name
+                    
+                    # Determine model type from directory name or config
+                        if "t5" in model_name.lower():
+                            display_name = "T5 Small (Local)"
+                            model_type = "t5"
+                        elif "bert" in model_name.lower():
+                            display_name = "BERT (Local)"
+                            model_type = "bert"
+                        else:
+                            display_name = f"Model (Local: {model_name})"
+                            model_type = "unknown"
+                    
+                        local_models[display_name] = str(model_dir)
+        
+        return local_models
+    
     @st.cache_resource
     def get_available_models(_self) -> Dict[str, str]:
-        """Get list of available trained models"""
+        """Get list of available models from Hugging Face Hub, fallback to local experiments folder"""
         if _self._available_models is not None:
             return _self._available_models
             
-        models = {}
+        # Try Hugging Face models first
+        hf_models = {
+            "T5 Small": "salman2025/t5-small",
+            "BART Base": "salman2025/bart-base",
+        }
         
-        # Scan experiments directory for trained models
-        if _self.experiments_dir.exists():
-            # Check root experiments directory
-            for model_dir in _self.experiments_dir.iterdir():
-                if model_dir.is_dir() and (model_dir / "model.safetensors").exists():
-                    model_name = model_dir.name
-                    # Extract readable name from directory name
-                    if "bert-base-cased" in model_name:
-                        display_name = "BERT Base Cased"
-                    elif "bert-base-uncased" in model_name:
-                        continue # BERT Base Uncased is not working well and giving empty results
-                        # display_name = "BERT Base Uncased" 
-                    elif "t5-small" in model_name:
-                        display_name = "T5 Small"
-                    elif "bart-base" in model_name:
-                        display_name = "BART Base"
-                    else:
-                        display_name = model_name.replace("_", " ").title()
-                    
-                    models[display_name] = str(model_dir)
-            
-            # Check facebook subdirectory for BART models
-            facebook_dir = _self.experiments_dir / "facebook"
-            if facebook_dir.exists():
-                for model_dir in facebook_dir.iterdir():
-                    if model_dir.is_dir() and (model_dir / "model.safetensors").exists():
-                        model_name = model_dir.name
-                        if "bart-base" in model_name:
-                            display_name = "BART Base"
-                        else:
-                            display_name = model_name.replace("_", " ").title()
-                        
-                        models[display_name] = str(model_dir)
+        # Test if Hugging Face models are accessible
+        available_models = {}
+        for display_name, model_name in hf_models.items():
+            try:
+                # Quick test to see if model is accessible
+                if "t5" in model_name.lower():
+                    T5Tokenizer.from_pretrained(model_name, use_fast=False)
+                elif "bart" in model_name.lower():
+                    BartTokenizer.from_pretrained(model_name, use_fast=False)
+                available_models[display_name] = model_name
+                logger.info(f"Hugging Face model {model_name} is accessible")
+            except Exception as e:
+                logger.warning(f"Hugging Face model {model_name} not accessible: {e}")
         
-        _self._available_models = models
-        return models
+        # If no Hugging Face models are available, try local models
+        if not available_models:
+            logger.info("No Hugging Face models available, checking local experiments folder...")
+            local_models = _self._discover_local_models()
+            if local_models:
+                available_models = local_models
+                logger.info(f"Found {len(local_models)} local models")
+            else:
+                logger.warning("No local models found in experiments folder")
+        
+        _self._available_models = available_models
+        return available_models
     
     @st.cache_resource
-    def load_model(_self, model_path: str) -> Tuple[object, object]:
-        """Load model and tokenizer from path"""
-        model_path = Path(model_path)
-        
+    def load_model(_self, model_name: str) -> Tuple[object, object, str]:
+        """Load model and tokenizer from Hugging Face Hub or local directory"""
         try:
-            # Determine model type from directory name
-            dir_name = model_path.name.lower()
+            # Check if this is a local model path
+            model_path = Path(model_name)
+            is_local = model_path.exists() and model_path.is_dir()
             
-            if "bert" in dir_name:
-                tokenizer = BertTokenizer.from_pretrained(model_path)
-                model = EncoderDecoderModel.from_pretrained(model_path)
-                model_type = "bert"
-            elif "t5" in dir_name:
-                tokenizer = T5Tokenizer.from_pretrained(model_path)
-                model = T5ForConditionalGeneration.from_pretrained(model_path)
-                model_type = "t5"
-            elif "bart" in dir_name:
-                tokenizer = BartTokenizer.from_pretrained(model_path)
-                model = BartForConditionalGeneration.from_pretrained(model_path)
-                model_type = "bart"
+            if is_local:
+                # Load from local directory
+                logger.info(f"Loading local model from {model_name}")
+                
+                # Determine model type from directory name or config
+                if "t5" in model_name.lower():
+                    tokenizer = T5Tokenizer.from_pretrained(model_name)
+                    model = T5ForConditionalGeneration.from_pretrained(model_name)
+                    model_type = "t5"
+                elif "bart" in model_name.lower():
+                    tokenizer = BartTokenizer.from_pretrained(model_name)
+                    model = BartForConditionalGeneration.from_pretrained(model_name)
+                    model_type = "bart"
+                elif "bert" in model_name.lower():
+                    # For BERT models, we'll use AutoModel and AutoTokenizer
+                    tokenizer = AutoTokenizer.from_pretrained(model_name)
+                    model = AutoModel.from_pretrained(model_name)
+                    model_type = "bert"
+                else:
+                    # Try to auto-detect model type
+                    tokenizer = AutoTokenizer.from_pretrained(model_name)
+                    model = AutoModel.from_pretrained(model_name)
+                    model_type = "auto"
+                    
             else:
-                raise ValueError(f"Unknown model type for {dir_name}")
+                # Load from Hugging Face Hub
+                logger.info(f"Loading model from Hugging Face Hub: {model_name}")
+                
+                # Determine model type from model name
+                if "t5" in model_name.lower():
+                    tokenizer = T5Tokenizer.from_pretrained(model_name)
+                    model = T5ForConditionalGeneration.from_pretrained(model_name)
+                    model_type = "t5"
+                elif "bart" in model_name.lower():
+                    tokenizer = BartTokenizer.from_pretrained(model_name)
+                    model = BartForConditionalGeneration.from_pretrained(model_name)
+                    model_type = "bart"
+                else:
+                    raise ValueError(f"Unknown model type for {model_name}")
             
             model.to(_self.device)
             model.eval()
             
-            logger.info(f"Loaded {model_type} model from {model_path}")
+            source = "local directory" if is_local else "Hugging Face Hub"
+            logger.info(f"Loaded fine-tuned {model_type} model from {source}: {model_name}")
             return model, tokenizer, model_type
             
         except Exception as e:
-            logger.error(f"Error loading model from {model_path}: {e}")
+            logger.error(f"Error loading model from {model_name}: {e}")
             st.error(f"Failed to load model: {e}")
             return None, None, None
 
@@ -303,7 +371,7 @@ def main():
     # Title and description
     st.title("🔄 Question Rephraser Chat")
     st.markdown("""
-    Transform disfluent questions into clean, well-formed questions using AI models trained on the Disfl-QA dataset.
+    Transform disfluent questions into clean, well-formed questions using pre-trained BART and T5 models from Hugging Face Hub (with local fallback).
     
     **Examples of disfluent questions:**
     - "What do petrologists no what do unstable isotope studies indicate?"
@@ -317,10 +385,21 @@ def main():
     # Get available models
     available_models = st.session_state.model_loader.get_available_models()
     
+    # Check if any models are available
     if not available_models:
-        st.error("No trained models found in experiments directory!")
-        st.stop()
-    
+        st.error("❌ No models available!")
+        st.markdown("""
+        **No models found!** The app tried to load models from:
+        
+        1. **Hugging Face Hub**: Models were not accessible
+        2. **Local experiments folder**: No trained models found
+        
+        **To fix this:**
+        - Ensure internet connection for Hugging Face models
+        - Or train local models using `python model_trainer.py` and save them in the `experiments/` folder
+        """)
+        return
+
     # Initialize chat history
     if 'chat_history' not in st.session_state:
         st.session_state.chat_history = []
@@ -372,9 +451,15 @@ def main():
     
     # Auto-load model when selection changes
     if selected_model_name != st.session_state.get('current_model_name', None):
-        with st.spinner(f"Loading {selected_model_name}..."):
-            model_path = available_models[selected_model_name]
-            model, tokenizer, model_type = st.session_state.model_loader.load_model(model_path)
+        # Determine loading source for spinner message
+        if "(Local)" in selected_model_name:
+            loading_msg = f"Loading {selected_model_name} from local experiments folder..."
+        else:
+            loading_msg = f"Loading {selected_model_name} from Hugging Face Hub..."
+            
+        with st.spinner(loading_msg):
+            model_name = available_models[selected_model_name]
+            model, tokenizer, model_type = st.session_state.model_loader.load_model(model_name)
             
             if model is not None:
                 st.session_state.current_model = model
