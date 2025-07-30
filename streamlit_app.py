@@ -10,9 +10,8 @@ Users can select different models and input disfluent questions to get clean, fl
 import streamlit as st
 import torch
 import time
-import os
 from pathlib import Path
-from typing import Dict, Tuple, List
+from typing import Dict, Tuple
 from transformers import (
     T5ForConditionalGeneration, T5Tokenizer,
     BartForConditionalGeneration, BartTokenizer,
