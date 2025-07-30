@@ -10,7 +10,7 @@ This project develops a question rephrasing framework to fine-tune and test stat
 
 **📁 Live Repository**: [https://github.com/salemhamdani/question-rephraser-live](https://github.com/salemhamdani/question-rephraser-live)
 
-> **Note**: The live demo uses a simplified version with BART models only due to `sentencepiece>=0.1.97` (needed fot t5 transformers) compatibility issues with Streamlit Cloud. The full version with all models (T5, BART, BERT) can still be run locally using this repository.
+> **Note**: The live demo uses a simplified version with BART models only due to `sentencepiece>=0.1.97` (needed for t5 transformers) compatibility issues with Streamlit Cloud. The full version with all models (T5, BART, BERT) can still be run locally using this repository.
 
 ![Chat Interface Demo](images/chat_demo.png)
 
