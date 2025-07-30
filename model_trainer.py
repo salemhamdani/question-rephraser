@@ -376,7 +376,8 @@ class QuestionRephraserTrainer:
             filename='model-{epoch:02d}-{val_loss:.2f}',
             monitor='val_loss',
             mode='min',
-            save_top_k=3
+            save_top_k=0,  # Don't save top k models
+            save_last=True  # Save only the last checkpoint
         )
         
         callbacks = [checkpoint_callback]

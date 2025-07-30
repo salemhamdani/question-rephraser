@@ -1,6 +1,6 @@
 {
   "models_to_test": [
-    "bert-base-uncased"
+    "facebook/bart-base"
   ],
   "batch_sizes": [
     32
@@ -12,6 +12,5 @@
     50
   ],
   "run_test_evaluation": true,
-  "use_early_stopping": true,
-  "early_stopping_patience": 10
+  "output_dir": "experiments/overfit"
 }

@@ -32,6 +32,8 @@ class ExperimentRunner:
         # Create experiment directory
         if output_dir:
             self.experiments_dir = Path(output_dir)
+        elif 'output_dir' in self.config:
+            self.experiments_dir = Path(self.config['output_dir'])
         else:
             # Default to experiments
             self.experiments_dir = Path("experiments")
@@ -158,13 +160,12 @@ def main():
     if args.quick:
         # Override config for quick testing
         config = {
-            "models_to_test": ["bert-base-uncased"],
+            "models_to_test": ["facebook/bart-base"],
             "batch_sizes": [32],
             "learning_rates": [5e-5],
             "epochs": [50],
             "run_test_evaluation": True,
-            "use_early_stopping": True,
-            "early_stopping_patience": 10
+            "output_dir": "experiments/overfit"
         }
         
         config_path = "quick_config.json"
