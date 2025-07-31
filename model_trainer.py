@@ -408,8 +408,17 @@ class QuestionRephraserTrainer:
         # Train the model
         trainer.fit(model)
         
-        model.model.save_pretrained(output_dir)
-        model.tokenizer.save_pretrained(output_dir)
+        # Load the best checkpoint and save it
+        best_model_path = checkpoint_callback.best_model_path
+        if best_model_path:
+            print(f"Loading best model from: {best_model_path}")
+            best_model = QuestionRephraserLightningModule.load_from_checkpoint(best_model_path)
+            best_model.model.save_pretrained(output_dir)
+            best_model.tokenizer.save_pretrained(output_dir)
+        else:
+            # Fallback
+            model.model.save_pretrained(output_dir)
+            model.tokenizer.save_pretrained(output_dir)
         
         logger.info(f"Training completed. Model saved to {output_dir}")
         return output_dir

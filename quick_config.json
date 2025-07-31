@@ -12,5 +12,7 @@
     50
   ],
   "run_test_evaluation": true,
-  "output_dir": "experiments/overfit"
+  "output_dir": "experiments/test",
+  "use_early_stopping": true,
+  "early_stopping_patience": 5
 }

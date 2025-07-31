@@ -165,7 +165,9 @@ def main():
             "learning_rates": [5e-5],
             "epochs": [50],
             "run_test_evaluation": True,
-            "output_dir": "experiments/overfit"
+            "output_dir": "experiments/test",
+            "use_early_stopping": True,
+            "early_stopping_patience": 5
         }
         
         config_path = "quick_config.json"
